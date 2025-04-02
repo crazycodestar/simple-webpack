@@ -97,6 +97,6 @@ function bundle(graph) {
 }
 
 const graph = createGraph("./src/entry.js");
-const result = bundle(graph);
+bundle(graph);
 
 console.log("Done!. Go to dist/index.js to run your code");
