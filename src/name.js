@@ -1,1 +1,1 @@
-export const name = "Hello World";
+export const name = "World";

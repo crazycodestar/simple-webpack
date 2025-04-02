@@ -3,6 +3,7 @@ const path = require("path");
 
 const babylon = require("babylon");
 const traverse = require("babel-traverse").default;
+const babel = require("babel-core");
 
 let ID = 0;
 
@@ -19,10 +20,16 @@ function createAsset(filename) {
     })
     
     const id = ID++;
+    
+    const { code } = babel.transformFromAst(ast, null, {
+        presets: ["@babel/preset-env"]
+    });
+
     return {
         id,
         filename,
         dependencies,
+        code,
     }
 }
 
@@ -50,5 +57,46 @@ function createGraph(entry) {
     return queue;
 }
 
+function bundle(graph) {
+    let modules = ``;
+
+    graph.forEach(mod => {
+        modules += `${mod.id}: [
+            function (require, module, exports) { ${mod.code} },
+            ${JSON.stringify(mod.mapping)},
+        ],`
+    })
+
+    const result = `
+    (function(modules) {
+        function require(id) {
+            const [fn, mapping] = modules[id];
+
+            function localRequire(relativePath) {
+                return require(mapping[relativePath])
+            }
+
+            const module = { exports: {} };
+
+            fn(localRequire, module, module.exports);
+
+            return module.exports;
+        }
+
+        require(0);
+    })({${modules}})`
+
+    // Ensure dist directory exists
+    const distDir = path.join(process.cwd(), 'dist');
+    if (!fs.existsSync(distDir)) {
+        fs.mkdirSync(distDir);
+    }
+    
+    // Write bundle to file
+    fs.writeFileSync(path.join(distDir, 'index.js'), result);
+}
+
 const graph = createGraph("./src/entry.js");
-console.log(graph);
+const result = bundle(graph);
+
+console.log("Done!. Go to dist/index.js to run your code");
