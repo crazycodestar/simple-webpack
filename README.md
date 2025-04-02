@@ -1,6 +1,5 @@
 # Simple Webpack Implementation
 
-[Working proof (video)](result.mov)
 
 A basic implementation of a JavaScript module bundler, similar to Webpack, created while following [Ronen Amiel's talk](https://www.youtube.com/watch?v=Gc9-7PBqOC8).
 
